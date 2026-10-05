@@ -1,0 +1,28 @@
+{
+  "name": "nitaipage-server",
+  "version": "1.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "nitaiPage": {
+    "repo": "https://github.com/Nitai9h/nitaipage",
+    "ref": "v3.0.0"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env scripts/prepare-frontend.mjs && node --env-file-if-exists=.env src/index.js",
+    "dev": "node --env-file-if-exists=.env scripts/prepare-frontend.mjs && node --watch --env-file-if-exists=.env src/index.js",
+    "prepare-frontend": "node --env-file-if-exists=.env scripts/prepare-frontend.mjs",
+    "pair": "node --env-file-if-exists=.env src/scripts/pair.js",
+    "hash-password": "node src/scripts/hash-password.js"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.2",
+    "@fastify/static": "^10.1.4",
+    "better-sqlite3": "^13.0.3",
+    "fastify": "^5.12.5",
+    "fflate": "^0.8.3"
+  }
+}

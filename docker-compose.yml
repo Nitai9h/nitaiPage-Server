@@ -1,0 +1,72 @@
+services:
+  nitaipage:
+    build: .
+    image: nitaipage-server:latest
+    container_name: nitaipage-server
+    restart: unless-stopped
+
+    ports:
+      # 前端
+      - "${WEB_PORT:-11123}:11123"
+      # API 接口
+      - "${API_PORT:-11125}:11125"
+
+    environment:
+      # 鉴权方式：pairing（默认，推荐）或 password
+      AUTH_MODE: ${AUTH_MODE:-pairing}
+      # 仅 password 时启用：APP_PASSWORD_HASH 优先
+      APP_PASSWORD_HASH: ${APP_PASSWORD_HASH:-}
+      APP_PASSWORD: ${APP_PASSWORD:-}
+      # Token
+      API_TOKEN: ${API_TOKEN:-}
+      SESSION_MAX_AGE: ${SESSION_MAX_AGE:-2592000}
+      LOGIN_MAX_FAILURES: ${LOGIN_MAX_FAILURES:-10}
+      LOGIN_WINDOW_MS: ${LOGIN_WINDOW_MS:-900000}
+
+      WEB_PORT: "11123"
+      API_PORT: "11125"
+      HOST: 0.0.0.0
+
+      DATA_DIR: /app/data
+      FRONTEND_DIR: /app/frontend
+
+      # 指定前端仓库
+      FRONTEND_REPO: ${FRONTEND_REPO:-https://github.com/Nitai9h/nitaipage}
+      # 填写前端构建版本，重启后重建
+      FRONTEND_REF: ${FRONTEND_REF:-v3.0.0}
+      # false 则跳过构建
+      PREPARE_FRONTEND: ${PREPARE_FRONTEND:-true}
+
+      # true 则锁定数据库存储
+      ONLY_SERVER: ${ONLY_SERVER:-false}
+      # 指定 api 地址，同源不用填
+      SERVER_URL: ${SERVER_URL:-}
+
+      # 设备配对
+      PAIRING_TTL: ${PAIRING_TTL:-600000}
+      MAX_PENDING_PAIRINGS: ${MAX_PENDING_PAIRINGS:-20}
+      DEVICE_TOKEN_MAX_AGE: ${DEVICE_TOKEN_MAX_AGE:-15552000}
+
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-209715200}
+
+    volumes:
+      # 用户数据
+      - nitaipage-data:/app/data
+      # 前端
+      - nitaipage-frontend:/app/frontend
+
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:11125/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      # 前端构建时间
+      start_period: 600s
+
+volumes:
+  nitaipage-data:
+  nitaipage-frontend:
