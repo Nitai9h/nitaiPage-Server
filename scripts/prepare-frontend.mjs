@@ -67,7 +67,8 @@ function fetchAndCheckout() {
 
     if (existsSync(join(dir, '.git'))) {
         log(`[WARN] 更换到 ${config.frontendRef}`)
-        git(['fetch', '--depth', '1', '--tags', 'origin', config.frontendRef], dir)
+        // --force：本地缓存的同名 tag 被移动过时（远端重打/重指）允许刷新，否则 fetch 会因 "would clobber existing tag" 整条失败
+        git(['fetch', '--depth', '1', '--force', '--tags', 'origin', config.frontendRef], dir)
         git(['checkout', '--force', 'FETCH_HEAD'], dir)
         return
     }
