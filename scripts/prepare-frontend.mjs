@@ -83,10 +83,10 @@ function build() {
 
     // 有 lockfile 时先用 ci
     try {
-        run(NPM, ['ci', '--no-audit', '--no-fund'], dir)
+        run(NPM, ['ci', '--no-audit', '--no-fund', '--include=dev'], dir)
     } catch {
         log('[WARN] npm ci 失败，回退到 npm install')
-        run(NPM, ['install', '--no-audit', '--no-fund'], dir)
+        run(NPM, ['install', '--no-audit', '--no-fund', '--include=dev'], dir)
     }
 
     // 数据存储
