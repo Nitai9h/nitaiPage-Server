@@ -1,7 +1,7 @@
 services:
   nitaipage:
     build: .
-    image: nitaipage-server:latest
+    image: ghcr.io/nitai9h/nitaipage-server:latest
     container_name: nitaipage-server
     restart: unless-stopped
 
@@ -33,7 +33,7 @@ services:
       # 指定前端仓库
       FRONTEND_REPO: ${FRONTEND_REPO:-https://github.com/Nitai9h/nitaipage}
       # 填写前端构建版本，重启后重建
-      FRONTEND_REF: ${FRONTEND_REF:-v3.0.2}
+      FRONTEND_REF: ${FRONTEND_REF:-v3.0.3}
       # false 则跳过构建
       PREPARE_FRONTEND: ${PREPARE_FRONTEND:-true}
 

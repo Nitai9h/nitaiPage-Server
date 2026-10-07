@@ -15,7 +15,7 @@ const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const log = (message) => console.log(`[frontend] ${message}`)
 
 function git(args, cwd) {
-    return execFileSync('git', args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] }).toString().trim()
+    return execFileSync('git', ['-c', 'safe.directory=*', ...args], { cwd, stdio: ['ignore', 'pipe', 'pipe'] }).toString().trim()
 }
 
 function run(command, args, cwd, env) {
