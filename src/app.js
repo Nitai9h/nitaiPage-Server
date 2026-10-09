@@ -42,10 +42,19 @@ function isSameOriginRequest(request) {
     const site = request.headers['sec-fetch-site']
     if (typeof site === 'string') return site === 'same-origin' || site === 'none'
 
+    const expected = `${request.protocol}://${request.headers.host}`
     const origin = request.headers.origin
-    if (!origin) return false
+    if (origin) return origin === expected
 
-    return origin === `${request.protocol}://${request.headers.host}`
+    const referer = String(request.headers.referer || '')
+    if (referer) {
+        try {
+            return new URL(referer).origin === expected
+        } catch {
+            return false
+        }
+    }
+    return false
 }
 
 function pathOf(request) {

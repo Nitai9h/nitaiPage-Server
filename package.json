@@ -1,6 +1,6 @@
 {
   "name": "nitaipage-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -9,7 +9,7 @@
   },
   "nitaiPage": {
     "repo": "https://github.com/Nitai9h/nitaipage",
-    "ref": "v3.0.3"
+    "ref": "v3.0.4"
   },
   "scripts": {
     "start": "node --env-file-if-exists=.env scripts/prepare-frontend.mjs && node --env-file-if-exists=.env src/index.js",
