@@ -120,6 +120,8 @@ function main() {
         throw new Error('[WARN] 未指定前端来源：请设置 FRONTEND_REPO 与 FRONTEND_REF')
     }
 
+    log(`[INFO] 前端版本 ${config.frontendRef}（来源：${process.env.FRONTEND_REF ? 'FRONTEND_REF 环境变量' : 'Docker 镜像构建'}）`)
+
     const stamp = readStamp()
     if (stamp && stamp.ref === config.frontendRef && stamp.buildKey === buildKey() && hasArtifact()) {
         log(`[INFO] 已是 ${stamp.ref} @ ${stamp.sha}，跳过构建`)

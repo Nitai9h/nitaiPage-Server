@@ -33,7 +33,8 @@ services:
       # 指定前端仓库
       FRONTEND_REPO: ${FRONTEND_REPO:-https://github.com/Nitai9h/nitaipage}
       # 填写前端构建版本，重启后重建
-      FRONTEND_REF: ${FRONTEND_REF:-v3.0.3}
+      # 留空则使用镜像构建时的版本
+      FRONTEND_REF: ${FRONTEND_REF:-}
       # false 则跳过构建
       PREPARE_FRONTEND: ${PREPARE_FRONTEND:-true}
 
@@ -54,6 +55,9 @@ services:
       - nitaipage-data:/app/data
       # 前端
       - nitaipage-frontend:/app/frontend
+      # 为了方便管理可以使用以下形式：
+      # - ./app/data:/app/data
+      # - ./app/frontend:/app/frontend
 
     healthcheck:
       test:

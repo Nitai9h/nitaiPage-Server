@@ -1,6 +1,6 @@
 {
   "name": "nitaipage-server",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -9,13 +9,14 @@
   },
   "nitaiPage": {
     "repo": "https://github.com/Nitai9h/nitaipage",
-    "ref": "v3.0.4"
+    "ref": "v3.0.5"
   },
   "scripts": {
     "start": "node --env-file-if-exists=.env scripts/prepare-frontend.mjs && node --env-file-if-exists=.env src/index.js",
     "dev": "node --env-file-if-exists=.env scripts/prepare-frontend.mjs && node --watch --env-file-if-exists=.env src/index.js",
     "prepare-frontend": "node --env-file-if-exists=.env scripts/prepare-frontend.mjs",
     "pair": "node --env-file-if-exists=.env src/scripts/pair.js",
+    "gc": "node --env-file-if-exists=.env src/scripts/gc.js",
     "hash-password": "node src/scripts/hash-password.js"
   },
   "dependencies": {
