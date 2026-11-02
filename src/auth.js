@@ -1,4 +1,4 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
+import { createHmac, scryptSync, timingSafeEqual } from 'node:crypto'
 import { config } from './config.js'
 import { verifyPassword as verifyPasswordHash } from './password.js'
 import { DEVICE_COOKIE } from './pairing.js'
@@ -51,10 +51,16 @@ export async function verifyPassword(password) {
     return verifyPasswordHash(input, config.passwordHash)
 }
 
-// 由 password 生成密钥
+// 由 password 派生 scrypt 密钥
+// salt 固定，结果缓存
+const SESSION_SECRET_SALT = 'nitaiPage-server/session-secret/v1'
+let sessionSecret = null
+
 function secret() {
+    if (sessionSecret) return sessionSecret
     const material = config.passwordPlain || config.passwordHash
-    return createHash('sha256').update(String(material)).digest('hex')
+    sessionSecret = scryptSync(String(material), SESSION_SECRET_SALT, 32).toString('hex')
+    return sessionSecret
 }
 
 function sign(issuedAt) {

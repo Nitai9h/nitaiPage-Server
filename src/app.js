@@ -6,6 +6,7 @@ import Fastify from 'fastify'
 import cookie from '@fastify/cookie'
 import fastifyStatic from '@fastify/static'
 import { config } from './config.js'
+import rateLimit from '@fastify/rate-limit'
 import {
     DEVICE_COOKIE,
     SESSION_COOKIE,
@@ -142,7 +143,20 @@ export async function buildApp({ store, pairing, mode = 'web' }) {
 
     await app.register(cookie)
 
+    // API 限流
+    await app.register(rateLimit, {
+        max: 240,
+        timeWindow: '1 minute',
+        allowList: (request) => request.method === 'OPTIONS' || !String(request.url || '').startsWith('/api/'),
+        errorResponseBuilder: (request, context) => Object.assign(new Error('too-many-requests'), {
+            statusCode: 429,
+            code: 'too-many-requests',
+            retryAfter: Math.max(1, Math.ceil(context.ttl / 1000))
+        })
+    })
+
     app.addHook('onRequest', async (request, reply) => {
+
         if (isApiMode) {
             reply.header('Access-Control-Allow-Origin', '*')
             reply.header('Access-Control-Allow-Headers', 'Authorization, Content-Type')

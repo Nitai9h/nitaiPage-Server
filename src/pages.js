@@ -313,7 +313,13 @@ export function missingFrontendPage({ publicDir = '' } = {}) {
 const NEXT_TARGET_SNIPPET = `
 function nextTarget() {
   var value = new URLSearchParams(location.search).get('next') || ''
-  return /^\\/(?!\\/|api\\/|files\\/|login|pair)/.test(value) ? value : '/'
+  if (value.charAt(0) !== '/') return '/'
+  if (value.charAt(1) === '/') return '/'
+  if (value.indexOf('\\\\') !== -1) return '/'
+  var path = value.split('?')[0]
+  if (path === '/' || path === '/login' || path === '/pair' || path === '/backup/download') return '/'
+  if (path.indexOf('/api/') === 0 || path.indexOf('/files/') === 0) return '/'
+  return value
 }
 `
 

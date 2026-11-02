@@ -1,7 +1,7 @@
 import { createReadStream, createWriteStream } from 'node:fs'
 import { mkdir, stat, unlink } from 'node:fs/promises'
 import { randomBytes } from 'node:crypto'
-import { extname, join } from 'node:path'
+import { extname, resolve, sep } from 'node:path'
 import { config } from '../config.js'
 
 // ref 格式，防止路径穿越
@@ -19,9 +19,23 @@ const MIME_TYPES = {
     '.webp': 'image/webp'
 }
 
+// 上传只有图片和视频携带扩展名保存
+const SAFE_UPLOAD_EXTENSIONS = new Set(Object.keys(MIME_TYPES))
+
 function extensionOf(name) {
     const ext = extname(String(name || '')).toLowerCase()
     return /^\.[a-z0-9]{1,8}$/.test(ext) ? ext : ''
+}
+
+// ref 需为 filesDir 下的绝对路径，否则返回 null
+export function resolveFileRef(ref) {
+    const name = String(ref ?? '')
+    if (!REF_PATTERN.test(name)) return null
+
+    const root = resolve(config.filesDir)
+    const target = resolve(root, name)
+    if (target === root || !target.startsWith(root + sep)) return null
+    return target
 }
 
 // 支持边收边写 带 强制上限
@@ -79,8 +93,12 @@ export default async function fileRoutes(app) {
             return reply.code(413).send({ ok: false, error: 'too-large', limit: config.maxUploadBytes })
         }
 
-        const ref = `${randomBytes(16).toString('hex')}${extensionOf(request.query?.name)}`
-        const target = join(config.filesDir, ref)
+        const ext = extensionOf(request.query?.name)
+        const ref = `${randomBytes(16).toString('hex')}${SAFE_UPLOAD_EXTENSIONS.has(ext) ? ext : ''}`
+        const target = resolveFileRef(ref)
+        if (!target) {
+            return reply.code(500).send({ ok: false, error: 'internal-error' })
+        }
 
         let result
         try {
@@ -104,11 +122,10 @@ export default async function fileRoutes(app) {
     // /files 是给同源页面直接使用，/api/files 给跨源客户端用
     async function sendFile(request, reply) {
         const { ref } = request.params
-        if (!REF_PATTERN.test(ref)) {
+        const target = resolveFileRef(ref)
+        if (!target) {
             return reply.code(400).send({ ok: false, error: 'invalid-ref' })
         }
-
-        const target = join(config.filesDir, ref)
 
         let info
         try {
@@ -132,12 +149,13 @@ export default async function fileRoutes(app) {
     // 换壁纸、删壁纸时调用，防止出现无用文件
     app.delete('/api/files/:ref', async (request, reply) => {
         const { ref } = request.params
-        if (!REF_PATTERN.test(ref)) {
+        const target = resolveFileRef(ref)
+        if (!target) {
             return reply.code(400).send({ ok: false, error: 'invalid-ref' })
         }
 
         try {
-            await unlink(join(config.filesDir, ref))
+            await unlink(target)
         } catch (error) {
             // 未找到文件也算删除成功
             if (error.code !== 'ENOENT') {

@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { extname, join } from 'node:path'
 import { Zip, ZipDeflate, ZipPassThrough, strToU8 } from 'fflate'
 import { config } from './config.js'
-import { REF_PATTERN } from './routes/files.js'
+import { REF_PATTERN, resolveFileRef } from './routes/files.js'
 
 const SKIP_DBS = ['system', 'translate']
 
@@ -126,7 +126,9 @@ export function streamBackupArchive(store, write) {
 
             const item = media[index]
             try {
-                const bytes = await readFile(join(config.filesDir, item.ref))
+                const target = resolveFileRef(item.ref)
+                if (!target) throw new Error('invalid-ref')
+                const bytes = await readFile(target)
                 const entry = new ZipPassThrough(item.path)
                 archive.add(entry)
                 entry.push(new Uint8Array(bytes), true)
