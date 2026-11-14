@@ -1,13 +1,19 @@
 const NAME_PATTERN = /^[A-Za-z0-9_.:-]{1,256}$/
+const KEY_MAX = 512
 
 function invalid(...names) {
     return names.some((name) => !NAME_PATTERN.test(String(name ?? '')))
 }
 
+function invalidKey(key) {
+    const value = String(key ?? '')
+    return value.length === 0 || value.length > KEY_MAX
+}
+
 export default async function dbRoutes(app, { store }) {
     app.get('/api/db/:db/:store/:key', async (request, reply) => {
         const { db, store: table, key } = request.params
-        if (invalid(db, table, key)) {
+        if (invalid(db, table) || invalidKey(key)) {
             return reply.code(400).send({ ok: false, error: 'invalid-name' })
         }
 
@@ -21,7 +27,7 @@ export default async function dbRoutes(app, { store }) {
 
     app.put('/api/db/:db/:store/:key', async (request, reply) => {
         const { db, store: table, key } = request.params
-        if (invalid(db, table, key)) {
+        if (invalid(db, table) || invalidKey(key)) {
             return reply.code(400).send({ ok: false, error: 'invalid-name' })
         }
 
@@ -31,7 +37,7 @@ export default async function dbRoutes(app, { store }) {
 
     app.delete('/api/db/:db/:store/:key', async (request, reply) => {
         const { db, store: table, key } = request.params
-        if (invalid(db, table, key)) {
+        if (invalid(db, table) || invalidKey(key)) {
             return reply.code(400).send({ ok: false, error: 'invalid-name' })
         }
 
@@ -70,7 +76,7 @@ export default async function dbRoutes(app, { store }) {
         if (!Array.isArray(entries)) {
             return reply.code(400).send({ ok: false, error: 'invalid-body' })
         }
-        if (entries.some((item) => !item || invalid(item.key))) {
+        if (entries.some((item) => !item || invalidKey(item.key))) {
             return reply.code(400).send({ ok: false, error: 'invalid-key' })
         }
 

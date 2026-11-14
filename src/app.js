@@ -132,6 +132,7 @@ export async function buildApp({ store, pairing, mode = 'web' }) {
     const app = Fastify({
         logger: { level: config.logLevel },
         bodyLimit: config.maxBodyBytes,
+        routerOptions: { maxParamLength: 512 },
         // 用于在部署反代后判断协议与客户端 IP
         trustProxy: true
     })
