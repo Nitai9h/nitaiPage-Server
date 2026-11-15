@@ -66,6 +66,10 @@ export const config = {
 
     maxBodyBytes: num('MAX_BODY_BYTES', 33554432),
     maxUploadBytes: num('MAX_UPLOAD_BYTES', 209715200),
+
+    // API 限流
+    apiRateMax: num('API_RATE_MAX', 60000),
+    apiRateAnonMax: num('API_RATE_ANON_MAX', 30),
     // kv 单条值的上限（byte）【超过只警告，大文件应走 /api/files】
     maxValueWarnBytes: num('MAX_VALUE_WARN_BYTES', 262144)
 }

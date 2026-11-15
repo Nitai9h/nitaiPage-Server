@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { timingSafeEqual } from 'node:crypto'
+import { createHash, timingSafeEqual } from 'node:crypto'
 import { join } from 'node:path'
 import Fastify from 'fastify'
 import cookie from '@fastify/cookie'
@@ -145,8 +145,21 @@ export async function buildApp({ store, pairing, mode = 'web' }) {
     await app.register(cookie)
 
     // API 限流
+    // 主体：有凭证就按凭证算，没有再按 IP 算
+    // 同一 IP 下多设备、多标签页计数互相占用额度
+    const rateSubject = (request) => {
+        const header = String(request.headers.authorization || '')
+        const token = header.startsWith('Bearer ') ? header.slice(7) : (request.cookies?.[DEVICE_COOKIE] || '')
+        if (!token) return `ip:${request.ip}`
+        return `cred:${createHash('sha256').update(token).digest('hex').slice(0, 16)}`
+    }
+
     await app.register(rateLimit, {
-        max: 240,
+        max: (request) => {
+            request.nppAuthorized = authorized(request)
+            return request.nppAuthorized ? config.apiRateMax : config.apiRateAnonMax
+        },
+        keyGenerator: rateSubject,
         timeWindow: '1 minute',
         allowList: (request) => request.method === 'OPTIONS' || !String(request.url || '').startsWith('/api/'),
         errorResponseBuilder: (request, context) => Object.assign(new Error('too-many-requests'), {
@@ -174,7 +187,9 @@ export async function buildApp({ store, pairing, mode = 'web' }) {
         }
 
         if (PUBLIC_PATHS.has(pathOf(request))) return
-        if (authorized(request)) return
+        // 限流器已经验过就直接复用
+        const authed = typeof request.nppAuthorized === 'boolean' ? request.nppAuthorized : authorized(request)
+        if (authed) return
 
         if (pathOf(request).startsWith('/api/')) {
             return reply.code(401).send({ ok: false, error: 'unauthorized' })
